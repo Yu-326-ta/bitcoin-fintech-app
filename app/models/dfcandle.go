@@ -10,8 +10,10 @@ type DataFrameCandle struct {
 	ProductCode string        `json:"product_code"`
 	Duration    time.Duration `json:"duration"`
 	Candles     []Candle      `json:"candles"`
+	// smaとemaはラインが複数になるかもしれないのでスライスにしている
 	Smas        []Sma         `json:"smas,omitempty"`  
 	Emas        []Ema         `json:"emas,omitempty"`  
+	BBands      *BBands         `json:"bbands,omitempty"`  
 }
 
 type Ema struct {
@@ -22,6 +24,14 @@ type Ema struct {
 type Sma struct {
 	Period int `json:"period,omitempty"`
 	Values []float64 `json:"values,omitempty"`
+}
+
+type BBands struct {
+	N    int       `json:"n,omitempty"`
+	K    float64   `json:"k,omitempty"`
+	Up   []float64 `json:"up,omitempty"`
+	Mid  []float64 `json:"mid,omitempty"`
+	Down []float64 `json:"down,omitempty"`
 }
 
 // Candleのそれぞれのフィールドの値のみを返せるようにする（時間だけとかHihtだけとか）
@@ -98,3 +108,19 @@ func (df *DataFrameCandle) AddEma(period int) bool {
 	}
 	return false
 }
+
+func (df *DataFrameCandle) AddBBands(n int, k float64) bool {
+	if n <= len(df.Closes()) {
+		up, mid, down := talib.BBands(df.Closes(), n, k, k, 0)
+		df.BBands = &BBands{
+			N:    n,
+			K:    k,
+			Up:   up,
+			Mid:  mid,
+			Down: down,
+		}
+		return true
+	}
+	return false
+}
+
