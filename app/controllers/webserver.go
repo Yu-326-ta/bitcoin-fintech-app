@@ -189,11 +189,11 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 	events := r.URL.Query().Get("events")
 	if events != "" {
 		if config.Config.BackTest {
-			p, p1, p2 := df.OptimizeEma()
+			p, p1, p2 := df.OptimizeBb()
 			log.Println(p, p1, p2)
 			// 利益の出る時のみ取引
 			if p > 0 {
-				df.Events = df.BackTestEma(p1, p2)
+				df.Events = df.BackTestBb(p1, p2)
 			}
 		} else {
 			firstTime := df.Candles[0].Time
