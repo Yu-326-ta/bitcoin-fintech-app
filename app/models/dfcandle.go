@@ -18,6 +18,7 @@ type DataFrameCandle struct {
 	IchimokuCloud  *IchimokuCloud  `json:"ichimoku,omitempty"`  
 	Rsi         *Rsi          `json:"rsi,omitempty"`  
 	Macd        *Macd         `json:"macd,omitempty"`  
+	Hvs         []Hv          `json:"hvs,omitempty"`  
 }
 
 type Ema struct {
@@ -58,6 +59,11 @@ type Macd struct {
 	Macd         []float64 `json:"macd,omitempty"`
 	MacdSignal   []float64 `json:"macd_signal,omitempty"`
 	MacdHist     []float64 `json:"macd_hist,omitempty"`
+}
+
+type Hv struct {
+	Period int       `json:"period,omitempty"`
+	Values []float64 `json:"values,omitempty"`
 }
 
 // Candleのそれぞれのフィールドの値のみを返せるようにする（時間だけとかHihtだけとか）
@@ -189,6 +195,17 @@ func (df *DataFrameCandle) AddMacd(inFastPeriod, inSlowPeriod, inSignalPeriod in
 			MacdSignal:   outMACDSignal,
 			MacdHist:     outMACDHist,
 		}
+		return true
+	}
+	return false
+}
+
+func (df *DataFrameCandle) AddHv(period int) bool {
+	if len(df.Candles) >= period {
+		df.Hvs = append(df.Hvs, Hv{
+			Period: period,
+			Values: tradingalgo.Hv(df.Closes(), period),
+		})
 		return true
 	}
 	return false

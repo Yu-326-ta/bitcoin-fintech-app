@@ -96,6 +96,12 @@
           periods: [],
           values: [],
         },
+        hv: {
+          enable: false,
+          indexes: [],
+          periods: [],
+          values: [],
+        },
       };
 
       function initConfigValues() {
@@ -119,6 +125,9 @@
         config.macd.indexes = [];
         config.macd.periods = [];
         config.macd.values = [];
+        config.hv.indexes = [];
+        config.hv.periods = [];
+        config.hv.values = [];
       }
 
       function drawChart(dataTable) {
@@ -297,6 +306,39 @@
           charts.push(macdChart);
         }
 
+        if (config.hv.enable == true) {
+          if (config.hv.indexes.length == 0) {
+            return;
+          }
+          if ($("#hv_div").length == 0) {
+            $("#technical_div").append(
+              "<div id='hv_div'>" +
+                "<span class='technical_title'>Hv</span>" +
+                "<div id='hv_chart'></div>" +
+                "</div>"
+            );
+          }
+          var hvSeries = {};
+          var hvColumns = [{ type: "string" }];
+
+          for (i = 0; i < config.hv.indexes.length; i++) {
+            hvSeries[config.hv.indexes[i]] = { lineWidth: 1 };
+            hvColumns.push(config.candlestick.numViews + config.hv.indexes[i]);
+          }
+          var hvChart = new google.visualization.ChartWrapper({
+            chartType: "LineChart",
+            containerId: "hv_chart",
+            options: {
+              legend: { position: "none" },
+              series: hvSeries,
+            },
+            view: {
+              columns: hvColumns,
+            },
+          });
+          charts.push(hvChart);
+        }
+
         var controlWrapper = new google.visualization.ControlWrapper({
           controlType: "ChartRangeFilter",
           containerId: "filter_div",
@@ -359,6 +401,13 @@
           params["macdPeriod1"] = config.macd.periods[0];
           params["macdPeriod2"] = config.macd.periods[1];
           params["macdPeriod3"] = config.macd.periods[2];
+        }
+
+        if (config.hv.enable == true) {
+          params["hv"] = true;
+          params["hvPeriod1"] = config.hv.periods[0];
+          params["hvPeriod2"] = config.hv.periods[1];
+          params["hvPeriod3"] = config.hv.periods[2];
         }
 
         $.get("/api/candle/", params).done(function (data) {
@@ -496,6 +545,25 @@
             config.macd.periods[2] = signal_period;
           }
 
+          if (data["hvs"] != undefined) {
+            for (i = 0; i < data["hvs"].length; i++) {
+              var hvData = data["hvs"][i];
+              if (hvData.length == 0) {
+                continue;
+              }
+
+              var period = hvData["period"].toString();
+              var value = hvData["values"];
+
+              config.dataTable.index += 1;
+              config.hv.indexes[i] = config.dataTable.index;
+
+              dataTable.addColumn("number", "HV(" + period + ")");
+              config.hv.values[i] = hvData["values"];
+              config.hv.periods[i] = period;
+            }
+          }
+
           var googleChartData = [];
           var candles = data["candles"];
 
@@ -593,6 +661,16 @@
                   datas.push(null);
                 } else {
                   datas.push(config.macd.values[j][i]);
+                }
+              }
+            }
+
+            if (data["hvs"] != undefined) {
+              for (j = 0; j < config.hv.values.length; j++) {
+                if (config.hv.values[j][i] == 0) {
+                  datas.push(null);
+                } else {
+                  datas.push(config.hv.values[j][i]);
                 }
               }
             }
@@ -735,6 +813,28 @@
           config.macd.periods[2] = this.value;
           send();
         });
+
+        $("#inputHv").change(function () {
+          if (this.checked === true) {
+            config.hv.enable = true;
+          } else {
+            $("#hv_div").remove();
+            config.hv.enable = false;
+          }
+          send();
+        });
+        $("#inputHvPeriod1").change(function () {
+          config.hv.periods[0] = this.value;
+          send();
+        });
+        $("#inputHvPeriod2").change(function () {
+          config.hv.periods[1] = this.value;
+          send();
+        });
+        $("#inputHvPeriod3").change(function () {
+          config.hv.periods[2] = this.value;
+          send();
+        });
       };
     </script>
   </head>
@@ -791,6 +891,17 @@
       />
       <input id="inputMacdPeriod2" type="text" value="26" style="width: 15px" />
       <input id="inputMacdPeriod3" type="text" value="9" style="width: 15px" />
+    </div>
+
+    <div>
+      HV <input id="inputHv" type="checkbox" /> Period<input
+        id="inputHvPeriod1"
+        type="text"
+        value="21"
+        style="width: 15px"
+      />
+      <input id="inputHvPeriod2" type="text" value="63" style="width: 15px" />
+      <input id="inputHvPeriod3" type="text" value="252" style="width: 15px" />
     </div>
 
     <div id="dashboard_div">
