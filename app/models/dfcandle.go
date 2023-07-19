@@ -16,6 +16,7 @@ type DataFrameCandle struct {
 	Emas        []Ema         `json:"emas,omitempty"`  
 	BBands      *BBands         `json:"bbands,omitempty"`  
 	IchimokuCloud  *IchimokuCloud  `json:"ichimoku,omitempty"`  
+	Rsi         *Rsi          `json:"rsi,omitempty"`  
 }
 
 type Ema struct {
@@ -44,6 +45,10 @@ type IchimokuCloud struct {
 	Chikou  []float64 `json:"chikou,omitempty"`
 }
 
+type Rsi struct {
+	Period int       `json:"period,omitempty"`
+	Values []float64 `json:"values,omitempty"`
+}
 
 // Candleのそれぞれのフィールドの値のみを返せるようにする（時間だけとかHihtだけとか）
 func (df *DataFrameCandle) Times() []time.Time {
@@ -145,6 +150,18 @@ func (df *DataFrameCandle) AddIchimoku() bool {
 			SenkouA: senkouA,
 			SenkouB: senkouB,
 			Chikou:  chikou,
+		}
+		return true
+	}
+	return false
+}
+
+func (df *DataFrameCandle) AddRsi(period int) bool {
+	if len(df.Candles) > period {
+		values := talib.Rsi(df.Closes(), period)
+		df.Rsi = &Rsi{
+			Period: period,
+			Values: values,
 		}
 		return true
 	}
