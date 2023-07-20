@@ -12,6 +12,15 @@ import (
 	"text/template"
 )
 
+var topTemplates = template.Must(template.ParseFiles("app/views/top.html"))
+
+func viewTopHandler(w http.ResponseWriter, r *http.Request) {
+	err := topTemplates.ExecuteTemplate(w, "top.html", nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 var templates = template.Must(template.ParseFiles("app/views/chart.html"))
 
 func viewChartHandler(w http.ResponseWriter, r *http.Request) {
@@ -212,5 +221,6 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 func StartWebServer() error {
 	http.HandleFunc("/api/candle/", apiMakeHandler(apiCandleHandler))
 	http.HandleFunc("/chart/", viewChartHandler)
+	http.HandleFunc("/", viewTopHandler)
 	return http.ListenAndServe(fmt.Sprintf(":%d", config.Config.Port), nil)
 }
