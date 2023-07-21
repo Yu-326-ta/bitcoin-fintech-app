@@ -1,0 +1,26 @@
+{
+  "name": "bitcoin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "TAILWIND_MODE=watch postcss app/views/css/main.css -o app/views/css/dist.css -w",
+    "build": "postcss app/views/css/main.css -o app/views/css/dist.css"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yu-326-ta/bitcoin-fintech-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Yu-326-ta/bitcoin-fintech-app/issues"
+  },
+  "homepage": "https://github.com/Yu-326-ta/bitcoin-fintech-app#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss-cli": "^10.1.0",
+    "tailwindcss": "^3.3.3"
+  }
+}
